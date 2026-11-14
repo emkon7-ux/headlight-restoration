@@ -30,10 +30,7 @@ function setup() {
   var first = ss.getSheetByName("Sheet1");
   if (first && first.getLastRow() === 0 && ss.getSheets().length > 2) ss.deleteSheet(first);
 
-  GmailApp.getUserLabelByName("Bookings") || GmailApp.createLabel("Bookings"); // also asks for Gmail permission now
-
-  var hasTrigger = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === "flagPending"; });
-  if (!hasTrigger) ScriptApp.newTrigger("flagPending").timeBased().everyMinutes(5).create();
+  MailApp.getRemainingDailyQuota(); // asks for send-email permission now, so booking alerts work later
 }
 
 function doGet() {
@@ -126,9 +123,10 @@ function normTime(v) {
   return (h < 10 ? "0" : "") + h + ":" + (m[2] || "00");
 }
 
-// Emails the owner (the Google account that owns this sheet) a booking alert, then marks it
-// Important, stars it and files it under a "Bookings" label in Gmail. Optionally texts too.
-// A failed alert never undoes a booking that's already saved.
+// Emails the owner (the Google account that owns this sheet) a booking alert. A Gmail filter on the
+// "IMPORTANT: New booking" subject stars it, marks it Important and labels it; the script only has
+// send-email permission, since Google blocks unverified scripts from changing Gmail.
+// Optionally texts too. A failed alert never undoes a booking that's already saved.
 function notify(d) {
   var when = whenText(d);
   var ref = Utilities.getUuid().slice(0, 6).toUpperCase();
@@ -150,38 +148,26 @@ function notify(d) {
     "This is an automatic alert from your website; replies go nowhere.</p></div>";
 
   try {
-    GmailApp.sendEmail(Session.getEffectiveUser().getEmail(), subject, text, {
+    MailApp.sendEmail({
+      to: Session.getEffectiveUser().getEmail(),
+      subject: subject,
+      body: text,
       htmlBody: html,
       name: "Clear Beam Bookings (no reply)",
       replyTo: "no-reply@clearbeam.invalid"
     });
-    Utilities.sleep(2000); // give Gmail a moment to index it; flagPending catches it later otherwise
-    flagPending();
   } catch (err) {
     console.error("Booking alert email failed: " + err); // see Apps Script > Executions
   }
 
   if (TEXT_ALERT_ADDRESS) {
     try {
-      GmailApp.sendEmail(TEXT_ALERT_ADDRESS, "New booking",
+      MailApp.sendEmail(TEXT_ALERT_ADDRESS, "New booking",
         when + "\n" + d.name + " " + d.phone + "\n" + d.address + "\n" + d.make + " " + d.model);
     } catch (err) {
       console.error("Text alert failed: " + err);
     }
   }
-}
-
-// Stars, marks Important and labels any booking alert not flagged yet. Runs after each booking and
-// every 5 minutes (the trigger setup() creates), since Gmail can take a moment to index a new email.
-function flagPending() {
-  var label = GmailApp.getUserLabelByName("Bookings") || GmailApp.createLabel("Bookings");
-  GmailApp.search('subject:"IMPORTANT: New booking" -label:Bookings newer_than:7d', 0, 20).forEach(function (thread) {
-    thread.markImportant();
-    thread.addLabel(label);
-    thread.moveToInbox();
-    thread.markUnread();
-    thread.getMessages().forEach(function (m) { m.star(); });
-  });
 }
 
 // Run from the Apps Script editor to send yourself a sample alert. Unlike a real booking it shows
@@ -190,14 +176,15 @@ function testAlert() {
   var to = Session.getEffectiveUser().getEmail();
   if (!to) throw new Error("Google didn't give this script your email address. Run setup first and allow access.");
   console.log("Sending a test alert to " + to);
-  GmailApp.sendEmail(to, "IMPORTANT: New booking TEST (ignore)", "Test alert from your booking script.", {
+  MailApp.sendEmail({
+    to: to,
+    subject: "IMPORTANT: New booking TEST (ignore)",
+    body: "Test alert from your booking script.",
     htmlBody: '<div style="background:#d64545;color:#fff;font-weight:bold;padding:10px 14px">&#9888; TEST BOOKING ALERT</div>' +
       "<p>If you can read this, booking alerts work.</p>",
     name: "Clear Beam Bookings (no reply)"
   });
-  Utilities.sleep(3000);
-  flagPending();
-  console.log("Sent. Check your inbox (and the Bookings label) for \"IMPORTANT: New booking TEST\".");
+  console.log("Sent. Check your inbox for \"IMPORTANT: New booking TEST\".");
 }
 
 function esc(s) {
