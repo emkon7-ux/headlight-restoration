@@ -671,7 +671,8 @@
         date: chosenDay, time: chosenTime,
         name: f.namedItem("name").value.trim(), phone: f.namedItem("phone").value.trim(),
         address: f.namedItem("address").value.trim(),
-        make: f.namedItem("make").value.trim(), model: f.namedItem("model").value.trim()
+        make: f.namedItem("make").value.trim(), model: f.namedItem("model").value.trim(),
+        contact: "Text" // the earlier deployed script requires this; the current one ignores it
       };
       var when = slotText();
 
