@@ -92,10 +92,21 @@
     position: relative; min-height: 94vh; display: grid; place-items: end center;
     text-align: center; color: #fff; overflow: hidden; background: #151515;
   }
-  .hero-split { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .hero-split {
+    position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+    opacity: 0; transition: opacity 1s ease;
+  }
+  .hero-split.active { opacity: 1; }
+  .hero-dots { display: flex; gap: 8px; justify-content: center; margin-top: 26px; }
+  .hero-dots button {
+    width: 9px; height: 9px; padding: 0; border: 0; border-radius: 9px; cursor: pointer;
+    background: rgba(255,255,255,.45); transition: width .3s ease, background .3s ease;
+  }
+  .hero-dots button[aria-current="true"] { width: 26px; background: var(--accent); }
+  .hero-caption { font-size: 13px; opacity: .75; margin-top: 10px; }
   .hero-split figure { position: relative; margin: 0; overflow: hidden; }
   .hero-split img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 55%; }
-  .hero-split .tag { top: auto; bottom: auto; top: 84px; left: 50%; transform: translateX(-50%); font-size: 13px; padding: 7px 16px; }
+  .hero-split .tag { white-space: nowrap; top: 84px; left: 50%; transform: translateX(-50%); font-size: 13px; padding: 7px 16px; }
   .hero::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(180deg, rgba(15,15,15,.25) 0%, rgba(15,15,15,0) 30%, rgba(15,15,15,.2) 50%, rgba(15,15,15,.88) 82%, rgba(15,15,15,.95) 100%);
@@ -233,6 +244,7 @@
     .price-main, .price-side { padding: 32px 26px; }
   }
   @media (max-width: 720px) {
+    .hero-split { bottom: 36%; }
     .nav-links { display: none; }
     .nav-pill { padding-right: 16px; }
     section { padding: 72px 0; }
@@ -256,23 +268,33 @@
       <a href="#pricing">Pricing</a>
     </nav>
   </div>
-  <a class="btn btn-light" href="#contact">Get a quote</a>
+  <a class="btn btn-light" href="#contact">Book today</a>
 </header>
 
 <main id="top">
   <section class="hero" style="padding:0">
-    <div class="hero-split">
+    <div class="hero-split active" data-caption="Lexus ES, driver side">
       <figure><img src="images/lexus-left-before.jpg" alt="Lexus headlight before restoration, yellow and cloudy"><span class="tag">Before</span></figure>
       <figure><img src="images/lexus-left-after.jpg" alt="Same Lexus headlight after restoration, clear lens"><span class="tag after">After</span></figure>
+    </div>
+    <div class="hero-split" data-caption="Toyota Tundra">
+      <figure><img src="images/tundra-before.jpg" alt="Toyota Tundra headlight, foggy and yellow" style="object-position:20% 54%"><span class="tag">Before</span></figure>
+      <figure><img src="images/tundra-after.jpg" alt="Same Toyota Tundra headlight after restoration" style="object-position:21% 56%"><span class="tag after">After</span></figure>
+    </div>
+    <div class="hero-split" data-caption="Lexus ES, passenger side">
+      <figure><img src="images/lexus-right-before.jpg" alt="Lexus passenger-side headlight, faded and yellow" style="object-position:46% 46%"><span class="tag">Before</span></figure>
+      <figure><img src="images/lexus-right-progress.jpg" alt="Same headlight sanded clear and masked for clear coat" style="object-position:44% 58%"><span class="tag after">Sanded clear</span></figure>
     </div>
     <div class="hero-inner">
       <span class="badge"><i></i>Sale: <s>$100</s> $75 per headlight</span>
       <h1>Your headlights, <em>clear</em> again.</h1>
       <p>I sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
       <div class="hero-ctas">
-        <a class="btn btn-accent" href="#contact">Get a quote</a>
+        <a class="btn btn-accent" href="#contact">Book today</a>
         <a class="btn btn-ghost" href="#work">See before &amp; after</a>
       </div>
+      <div class="hero-dots" role="group" aria-label="Before and after photos"></div>
+      <div class="hero-caption" aria-live="polite"></div>
     </div>
   </section>
 
@@ -389,7 +411,7 @@
 
   <section id="contact" class="contact reasons">
     <div class="wrap">
-      <span class="eyebrow">Get a quote</span>
+      <span class="eyebrow">Book today</span>
       <h2>Text me a photo of your <em>headlights</em></h2>
       <p class="lede">Send a picture of each light and I'll reply with a price and a time that works for you.</p>
       <div class="contact-ctas">
@@ -406,6 +428,44 @@
     <span>On sale: $75 per headlight</span>
   </div>
 </footer>
+
+<script>
+  // Hero slideshow: fades through each before/after pair; dots jump to a pair
+  (function () {
+    var slides = document.querySelectorAll(".hero-split");
+    var dots = document.querySelector(".hero-dots");
+    var caption = document.querySelector(".hero-caption");
+    var current = 0, timer;
+
+    function show(i) {
+      slides[current].classList.remove("active");
+      dots.children[current].removeAttribute("aria-current");
+      current = (i + slides.length) % slides.length;
+      slides[current].classList.add("active");
+      dots.children[current].setAttribute("aria-current", "true");
+      caption.textContent = slides[current].dataset.caption;
+    }
+
+    function start() {
+      clearInterval(timer);
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        timer = setInterval(function () { show(current + 1); }, 4500);
+      }
+    }
+
+    slides.forEach(function (slide, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-label", slide.dataset.caption);
+      b.addEventListener("click", function () { show(i); start(); });
+      dots.appendChild(b);
+    });
+
+    dots.children[0].setAttribute("aria-current", "true");
+    caption.textContent = slides[0].dataset.caption;
+    start();
+  })();
+</script>
 
 </body>
 </html>
