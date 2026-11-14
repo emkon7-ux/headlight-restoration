@@ -158,6 +158,11 @@
   }
   .reason h3 { font-size: 30px; margin-bottom: 10px; }
   .reason p { margin: 0; color: var(--muted); }
+  .slash { position: relative; display: inline-block; color: var(--muted); }
+  .slash::after {
+    content: ""; position: absolute; left: -6%; right: -6%; top: 52%; height: 3px; border-radius: 3px;
+    background: #d64545; transform: rotate(-14deg);
+  }
 
   /* Process */
   .steps { list-style: none; padding: 0; margin: 48px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
@@ -318,7 +323,7 @@
         </div>
         <div class="reason">
           <span class="num">2</span>
-          <h3>Skip the $300 part</h3>
+          <h3>Skip the <span class="slash">$300</span> part</h3>
           <p>A new headlight assembly runs $300 or more per side, and a shop charges labor on top to install it. Restoration costs $75 a light during the sale and keeps the housing you already have.</p>
         </div>
         <div class="reason">
