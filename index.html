@@ -529,11 +529,13 @@
 
 <script>
   // Booking pop-up: weekend day + 2-hour slot picker. Bookings send from the page to the Google Apps
-  // Script web app in booking-backend/Code.gs (BOOKING_URL), which saves them to the Google Sheet,
-  // emails the owner, and crosses out taken and blocked slots. The owner's contact details never
-  // appear on the page.
+  // Script web app in booking-backend/Code.gs (BOOKING_URL), which saves them to the Google Sheet and
+  // crosses out taken and blocked slots. Each saved booking is then emailed to the owner through
+  // FormSubmit (ALERT_URL; Google blocks the script from sending mail on this account). The alias in
+  // ALERT_URL stands in for the owner's address, so their contact details never appear on the page.
   (function () {
     var BOOKING_URL = "https://script.google.com/macros/s/AKfycbwAGiyoU1wyKyRF5PTRBK5gsl4D8gleGNvAtpxl0HVBrWl1krc4RRhC0o7Vl_r7VwwAcg/exec";
+    var ALERT_URL = "https://formsubmit.co/ajax/2826a4e306bb60e9a4653b14ed21e8d9";
     var SLOTS = [
       { time: "08:00", label: "8 – 10 AM" },
       { time: "10:00", label: "10 AM – 12 PM" },
@@ -644,6 +646,24 @@
       chosenTime = null;
     }
 
+    // Emails the owner the booking; the booking is already saved, so a failed alert is ignored
+    function sendAlert(data, when) {
+      fetch(ALERT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: "IMPORTANT: New booking " + when + " (" + data.name + ")",
+          _template: "table",
+          _captcha: "false",
+          When: when,
+          Name: data.name,
+          Phone: data.phone,
+          Address: data.address,
+          Car: data.make + " " + data.model
+        })
+      }).catch(function () {});
+    }
+
     document.querySelectorAll("[data-book]").forEach(function (link) {
       link.addEventListener("click", function (e) {
         e.preventDefault();
@@ -684,6 +704,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.ok) {
+            sendAlert(data, when);
             finish("You're booked", "See you <em>soon</em>",
               when + ". I'll text you at the number you gave to confirm.");
           } else if (res.error === "taken" || res.error === "past") {
