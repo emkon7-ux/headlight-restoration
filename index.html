@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clear Beam Headlights</title>
+<meta name="description" content="Headlight restoration for $50 to $60 per headlight. Remove yellowing and oxidation, see better at night, and skip the cost of new headlights.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f3;
+    --surface: #ffffff;
+    --ink: #202121;
+    --muted: #5e605f;
+    --line: #e6e2d8;
+    --accent: #f6dd5f;
+    --accent-ink: #202121;
+    --chip: #f1ede2;
+    --serif: "Instrument Serif", "Times New Roman", serif;
+    --sans: "Manrope", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141515;
+      --surface: #1d1e1e;
+      --ink: #f2f0ea;
+      --muted: #a9aaa6;
+      --line: #2e2f2f;
+      --chip: #262727;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141515;
+    --surface: #1d1e1e;
+    --ink: #f2f0ea;
+    --muted: #a9aaa6;
+    --line: #2e2f2f;
+    --chip: #262727;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+
+  .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+  /* Floating pill nav */
+  .nav {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    width: min(1120px, 100% - 32px);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    z-index: 10;
+  }
+  .nav-pill {
+    display: flex; align-items: center; gap: 22px;
+    background: #fff; color: #202121;
+    padding: 6px 22px 6px 6px; border-radius: 200px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.08);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; font-size: 15px; }
+  .brand img { width: 38px; height: 38px; }
+  .nav-links { display: flex; gap: 20px; font-size: 14px; font-weight: 500; }
+  .nav-links a { text-decoration: none; opacity: .8; }
+  .nav-links a:hover { opacity: 1; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 200px;
+    font: 600 14px/1 var(--sans); text-decoration: none;
+    border: 1px solid transparent; cursor: pointer;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-light { background: #fff; color: #202121; box-shadow: 0 2px 14px rgba(0,0,0,.08); }
+  .btn-accent { background: var(--accent); color: var(--accent-ink); }
+  .btn-ghost { border-color: rgba(255,255,255,.7); color: #fff; }
+  .btn-outline { border-color: var(--ink); color: var(--ink); }
+
+  /* Hero */
+  .hero {
+    position: relative; min-height: 94vh; display: grid; place-items: end center;
+    text-align: center; color: #fff; overflow: hidden; background: #151515;
+  }
+  .hero-split { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .hero-split figure { position: relative; margin: 0; overflow: hidden; }
+  .hero-split img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 55%; }
+  .hero-split .tag { top: auto; bottom: auto; top: 84px; left: 50%; transform: translateX(-50%); font-size: 13px; padding: 7px 16px; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(15,15,15,.25) 0%, rgba(15,15,15,0) 30%, rgba(15,15,15,.2) 50%, rgba(15,15,15,.88) 82%, rgba(15,15,15,.95) 100%);
+  }
+  .hero-inner { position: relative; z-index: 1; padding: 0 16px 64px; max-width: 820px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 200px;
+    background: rgba(255,255,255,.14); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.25);
+    font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  }
+  .badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.05; margin: 0; }
+  h1 { font-size: clamp(44px, 8vw, 84px); margin: 22px 0 18px; letter-spacing: -.01em; }
+  h1 em, h2 em { font-style: italic; }
+  .hero p { font-size: clamp(16px, 2vw, 19px); max-width: 560px; margin: 0 auto 30px; opacity: .92; }
+  .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  section { padding: 96px 0; scroll-margin-top: 40px; }
+  .eyebrow {
+    display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  h2 { font-size: clamp(36px, 5.5vw, 58px); max-width: 720px; }
+  .lede { color: var(--muted); max-width: 560px; margin: 16px 0 0; font-size: 17px; }
+
+  /* Before / after */
+  .pairs { display: grid; gap: 28px; margin-top: 48px; }
+  .pair {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 28px; padding: 14px;
+  }
+  .pair-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shot { position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 5; background: var(--chip); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; }
+  .tag {
+    position: absolute; top: 12px; left: 12px;
+    padding: 5px 12px; border-radius: 200px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    background: rgba(20,20,20,.7); color: #fff; backdrop-filter: blur(6px);
+  }
+  .tag.after { background: var(--accent); color: #202121; }
+  .pair-cap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 8px 4px; font-size: 15px; }
+  .pair-cap strong { font-weight: 600; }
+  .pair-cap span { color: var(--muted); }
+
+  /* Reasons */
+  .reasons { background: var(--surface); border-block: 1px solid var(--line); }
+  .reason-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 48px; }
+  .reason {
+    border: 1px solid var(--line); border-radius: 24px; padding: 30px;
+    background: var(--bg);
+  }
+  .reason .num {
+    display: inline-grid; place-items: center; width: 34px; height: 34px;
+    border-radius: 50%; background: var(--accent); color: #202121;
+    font-weight: 700; font-size: 14px; margin-bottom: 18px;
+  }
+  .reason h3 { font-size: 30px; margin-bottom: 10px; }
+  .reason p { margin: 0; color: var(--muted); }
+
+  /* Process */
+  .steps { list-style: none; padding: 0; margin: 48px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .steps li { border-top: 2px solid var(--ink); padding-top: 18px; }
+  .steps b { display: block; font-family: var(--serif); font-weight: 400; font-size: 28px; margin-bottom: 6px; }
+  .steps p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* Pricing */
+  .price-card {
+    margin-top: 48px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 0;
+    border-radius: 32px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
+  }
+  .price-main { padding: 44px; background: #202121; color: #fff; }
+  .price-main .amount { font-family: var(--serif); font-size: clamp(64px, 10vw, 104px); line-height: 1; }
+  .price-main .unit { font-size: 17px; opacity: .8; margin-top: 6px; }
+  .price-main p { opacity: .8; margin: 22px 0 28px; max-width: 380px; }
+  .price-side { padding: 44px; }
+  .price-side h3 { font-size: 28px; margin-bottom: 18px; }
+  .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; }
+  .checks li::before {
+    content: ""; flex: none; width: 20px; height: 20px; margin-top: 3px; border-radius: 50%;
+    background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.5l2.6 2.5L14 7.5' fill='none' stroke='%23202121' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 20px no-repeat;
+  }
+  .compare { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
+  .compare div { display: flex; justify-content: space-between; padding: 4px 0; }
+  .compare div b { color: var(--ink); font-weight: 600; }
+
+  /* Contact */
+  .contact { text-align: center; }
+  .contact h2 { margin-inline: auto; }
+  .contact .lede { margin-inline: auto; }
+  .contact-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0; font-size: 14px; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  footer .brand { color: var(--ink); }
+
+  @media (max-width: 860px) {
+    .reason-grid, .price-card { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .price-main, .price-side { padding: 32px 26px; }
+  }
+  @media (max-width: 720px) {
+    .nav-links { display: none; }
+    .nav-pill { padding-right: 16px; }
+    section { padding: 72px 0; }
+    .pair { padding: 10px; border-radius: 22px; }
+    .shot { border-radius: 14px; }
+  }
+  @media (max-width: 480px) {
+    .steps { grid-template-columns: 1fr; }
+    .brand span { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-pill">
+    <a class="brand" href="#top"><img src="logo.svg" alt=""><span>Clear Beam</span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#work">Work</a>
+      <a href="#why">Why restore</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+  </div>
+  <a class="btn btn-light" href="#contact">Get a quote</a>
+</header>
+
+<main id="top">
+  <section class="hero" style="padding:0">
+    <div class="hero-split">
+      <figure><img src="images/lexus-left-before.jpg" alt="Lexus headlight before restoration, yellow and cloudy"><span class="tag">Before</span></figure>
+      <figure><img src="images/lexus-left-after.jpg" alt="Same Lexus headlight after restoration, clear lens"><span class="tag after">After</span></figure>
+    </div>
+    <div class="hero-inner">
+      <span class="badge"><i></i>$50–60 per headlight</span>
+      <h1>Your headlights, <em>clear</em> again.</h1>
+      <p>I sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-accent" href="#contact">Get a quote</a>
+        <a class="btn btn-ghost" href="#work">See before &amp; after</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="wrap">
+      <span class="eyebrow">Recent work</span>
+      <h2>Before and <em>after</em></h2>
+      <p class="lede">I took these photos on the day of each job, with the original lenses still on the car.</p>
+
+      <div class="pairs">
+        <article class="pair">
+          <div class="pair-imgs">
+            <figure class="shot" style="margin:0"><img src="images/lexus-left-before.jpg" alt="Lexus driver-side headlight, yellow and cloudy, masked with blue tape" loading="lazy"><span class="tag">Before</span></figure>
+            <figure class="shot" style="margin:0"><img src="images/lexus-left-after.jpg" alt="Same Lexus headlight after restoration, clear lens" loading="lazy"><span class="tag after">After</span></figure>
+          </div>
+          <div class="pair-cap"><strong>Lexus ES, driver side</strong><span>Heavy yellowing to clear</span></div>
+        </article>
+
+        <article class="pair">
+          <div class="pair-imgs">
+            <figure class="shot" style="margin:0"><img src="images/tundra-before.jpg" alt="White Toyota Tundra with foggy, yellowed headlights" loading="lazy" style="object-position:center 60%"><span class="tag">Before</span></figure>
+            <figure class="shot" style="margin:0"><img src="images/tundra-after.jpg" alt="Same Toyota Tundra with both headlights restored" loading="lazy" style="object-position:center 60%"><span class="tag after">After</span></figure>
+          </div>
+          <div class="pair-cap"><strong>Toyota Tundra, both sides</strong><span>One evening in the garage</span></div>
+        </article>
+
+        <article class="pair">
+          <div class="pair-imgs">
+            <figure class="shot" style="margin:0"><img src="images/lexus-right-before.jpg" alt="Lexus passenger-side headlight, faded and yellow" loading="lazy"><span class="tag">Before</span></figure>
+            <figure class="shot" style="margin:0"><img src="images/lexus-right-progress.jpg" alt="Lexus passenger-side headlight sanded clear and masked off for clear coat" loading="lazy"><span class="tag after">Prepped</span></figure>
+          </div>
+          <div class="pair-cap"><strong>Lexus ES, passenger side</strong><span>Sanded clear and masked for the UV coat</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="reasons">
+    <div class="wrap">
+      <span class="eyebrow">Why restore</span>
+      <h2>Four reasons to fix <em>foggy</em> headlights</h2>
+
+      <div class="reason-grid">
+        <div class="reason">
+          <span class="num">1</span>
+          <h3>See more at night</h3>
+          <p>Oxidized plastic scatters your beam before it reaches the road. A clear lens puts that light back on the pavement in front of you, on dark streets and in the rain.</p>
+        </div>
+        <div class="reason">
+          <span class="num">2</span>
+          <h3>Skip the $300 part</h3>
+          <p>A new headlight assembly runs $300 or more per side, and a shop charges labor on top to install it. Restoration costs $50 to $60 a light and keeps the housing you already have.</p>
+        </div>
+        <div class="reason">
+          <span class="num">3</span>
+          <h3>Raise your resale value</h3>
+          <p>Yellow headlights make a well-kept car look years older. Buyers and dealers see that first and lower their offer to match.</p>
+        </div>
+        <div class="reason">
+          <span class="num">4</span>
+          <h3>Do it once</h3>
+          <p>Your lens left the factory with a UV coating that has since worn off. I put a new UV-resistant clear coat on, so the fix lasts for as long as you own the car.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="wrap">
+      <span class="eyebrow">How it works</span>
+      <h2>Four steps, <em>one</em> visit</h2>
+      <ol class="steps">
+        <li><b>Mask</b><p>I tape off the paint and trim around each light.</p></li>
+        <li><b>Sand</b><p>I wet sand through the yellow layer down to clean plastic.</p></li>
+        <li><b>Polish</b><p>I polish out the sanding marks until you can see the bulb again.</p></li>
+        <li><b>Seal</b><p>I spray a UV clear coat to keep the sun off the bare lens.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="pricing" style="padding-top:0">
+    <div class="wrap">
+      <span class="eyebrow">Pricing</span>
+      <h2>One price, <em>per</em> headlight</h2>
+
+      <div class="price-card">
+        <div class="price-main">
+          <div class="amount">$50–60</div>
+          <div class="unit">per headlight</div>
+          <p>The exact price depends on how deep the oxidation goes. Most cars need both sides, so plan on $100 to $120 for the pair.</p>
+          <a class="btn btn-accent" href="#contact">Get your price</a>
+        </div>
+        <div class="price-side">
+          <h3>Every job includes</h3>
+          <ul class="checks">
+            <li>Tape and plastic masking to protect your paint</li>
+            <li>Multi-stage wet sanding</li>
+            <li>UV-resistant clear coat</li>
+          </ul>
+          <div class="compare">
+            <div><span>Both headlights</span><b>$100–120</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact reasons">
+    <div class="wrap">
+      <span class="eyebrow">Get a quote</span>
+      <h2>Text me a photo of your <em>headlights</em></h2>
+      <p class="lede">Send a picture of each light and I'll reply with a price and a time that works for you.</p>
+      <div class="contact-ctas">
+        <a class="btn btn-accent" href="sms:+18054023870">Text (805) 402-3870</a>
+        <a class="btn btn-outline" href="tel:+18054023870">Call</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="logo.svg" alt="" width="30" height="30"><span>Clear Beam Headlight Restoration</span></a>
+    <span>$50–60 per headlight</span>
+  </div>
+</footer>
+
+</body>
+</html>
