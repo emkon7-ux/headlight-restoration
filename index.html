@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Clear Beam Headlights</title>
-<meta name="description" content="Headlight restoration for $50 to $60 per headlight. Remove yellowing and oxidation, see better at night, and skip the cost of new headlights.">
+<meta name="description" content="Headlight restoration on sale: $85 per headlight, regularly $100. Fog lights $15 each. Remove yellowing and oxidation, see better at night, and skip the cost of new headlights.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,6 +108,7 @@
     border: 1px solid rgba(255,255,255,.25);
     font-size: 13px; font-weight: 600; letter-spacing: .02em;
   }
+  .badge s { opacity: .65; }
   .badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
   h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.05; margin: 0; }
   h1 { font-size: clamp(44px, 8vw, 84px); margin: 22px 0 18px; letter-spacing: -.01em; }
@@ -169,9 +170,35 @@
     margin-top: 48px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 0;
     border-radius: 32px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
   }
-  .price-main { padding: 44px; background: #202121; color: #fff; }
-  .price-main .amount { font-family: var(--serif); font-size: clamp(64px, 10vw, 104px); line-height: 1; }
-  .price-main .unit { font-size: 17px; opacity: .8; margin-top: 6px; }
+  .price-main { position: relative; padding: 44px; background: #202121; color: #fff; overflow: hidden; }
+  .price-main::before {
+    content: ""; position: absolute; right: -120px; top: -120px; width: 360px; height: 360px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(246,221,95,.25) 0%, rgba(246,221,95,0) 70%);
+  }
+  .sale-tag {
+    position: relative; display: inline-block; padding: 7px 16px; border-radius: 200px;
+    background: var(--accent); color: #202121;
+    font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    transform: rotate(-3deg);
+  }
+  .price-main .was {
+    position: relative; display: block; width: fit-content; margin-top: 26px;
+    font-family: var(--serif); font-size: clamp(40px, 6vw, 56px); line-height: 1; color: rgba(255,255,255,.55);
+  }
+  .price-main .was::after {
+    content: ""; position: absolute; left: -8%; right: -8%; top: 50%; height: 4px; border-radius: 4px;
+    background: var(--accent); transform: rotate(-14deg);
+  }
+  .price-main .amount {
+    position: relative; font-family: var(--serif); font-size: clamp(120px, 18vw, 180px);
+    line-height: .9; color: var(--accent); letter-spacing: -.02em;
+  }
+  .price-main .amount sup { font-size: .4em; vertical-align: .95em; margin-right: 4px; }
+  .price-main .unit { position: relative; font-size: 18px; font-weight: 600; margin-top: 4px; }
+  .price-main p, .price-main .btn { position: relative; }
+  .compare s { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  .addons-title { margin-top: 26px; }
+  .compare.addons { margin-top: 0; padding-top: 0; border-top: 0; }
   .price-main p { opacity: .8; margin: 22px 0 28px; max-width: 380px; }
   .price-side { padding: 44px; }
   .price-side h3 { font-size: 28px; margin-bottom: 18px; }
@@ -234,7 +261,7 @@
       <figure><img src="images/lexus-left-after.jpg" alt="Same Lexus headlight after restoration, clear lens"><span class="tag after">After</span></figure>
     </div>
     <div class="hero-inner">
-      <span class="badge"><i></i>$50–60 per headlight</span>
+      <span class="badge"><i></i>Sale: <s>$100</s> $85 per headlight</span>
       <h1>Your headlights, <em>clear</em> again.</h1>
       <p>I sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
       <div class="hero-ctas">
@@ -292,7 +319,7 @@
         <div class="reason">
           <span class="num">2</span>
           <h3>Skip the $300 part</h3>
-          <p>A new headlight assembly runs $300 or more per side, and a shop charges labor on top to install it. Restoration costs $50 to $60 a light and keeps the housing you already have.</p>
+          <p>A new headlight assembly runs $300 or more per side, and a shop charges labor on top to install it. Restoration costs $85 a light during the sale and keeps the housing you already have.</p>
         </div>
         <div class="reason">
           <span class="num">3</span>
@@ -324,14 +351,16 @@
   <section id="pricing" style="padding-top:0">
     <div class="wrap">
       <span class="eyebrow">Pricing</span>
-      <h2>One price, <em>per</em> headlight</h2>
+      <h2>Headlights on <em>sale</em> now</h2>
 
       <div class="price-card">
         <div class="price-main">
-          <div class="amount">$50–60</div>
+          <span class="sale-tag">Sale on now</span>
+          <div class="was" aria-label="Regular price $100">$100</div>
+          <div class="amount"><sup>$</sup>85</div>
           <div class="unit">per headlight</div>
-          <p>The exact price depends on how deep the oxidation goes. Most cars need both sides, so plan on $100 to $120 for the pair.</p>
-          <a class="btn btn-accent" href="#contact">Get your price</a>
+          <p>Book today and both headlights cost $170, down from $200.</p>
+          <a class="btn btn-accent" href="#contact">Book today</a>
         </div>
         <div class="price-side">
           <h3>Every job includes</h3>
@@ -341,7 +370,12 @@
             <li>UV-resistant clear coat</li>
           </ul>
           <div class="compare">
-            <div><span>Both headlights</span><b>$100–120</b></div>
+            <div><span>Headlight, each</span><b><s>$100</s> $85</b></div>
+            <div><span>Both headlights</span><b><s>$200</s> $170</b></div>
+          </div>
+          <h3 class="addons-title">Add-ons</h3>
+          <div class="compare addons">
+            <div><span>Fog light, each</span><b>$15</b></div>
           </div>
         </div>
       </div>
@@ -364,7 +398,7 @@
 <footer>
   <div class="wrap">
     <a class="brand" href="#top"><img src="logo.svg" alt="" width="30" height="30"><span>Clear Beam Headlight Restoration</span></a>
-    <span>$50–60 per headlight</span>
+    <span>On sale: $85 per headlight</span>
   </div>
 </footer>
 
