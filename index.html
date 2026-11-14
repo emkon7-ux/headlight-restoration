@@ -94,7 +94,7 @@
   }
   .hero-split {
     position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
-    opacity: 0; transition: opacity 1s ease;
+    opacity: 0; transition: opacity .6s ease;
   }
   .hero-split.active { opacity: 1; }
   .hero-dots { display: flex; gap: 8px; justify-content: center; margin-top: 26px; }
@@ -449,7 +449,7 @@
     function start() {
       clearInterval(timer);
       if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        timer = setInterval(function () { show(current + 1); }, 4500);
+        timer = setInterval(function () { show(current + 1); }, 2500);
       }
     }
 
