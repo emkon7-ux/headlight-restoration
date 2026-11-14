@@ -120,6 +120,34 @@
     font-size: 13px; font-weight: 600; letter-spacing: .02em;
   }
   .badge s { opacity: .65; }
+  .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  /* Booking pop-up */
+  .book-dialog {
+    width: min(460px, 100% - 32px); max-height: calc(100% - 32px); padding: 0; border: 0; border-radius: 28px;
+    background: var(--surface); color: var(--ink); box-shadow: 0 24px 80px rgba(0,0,0,.35);
+  }
+  .book-dialog::backdrop { background: rgba(10,10,10,.6); backdrop-filter: blur(4px); }
+  .book-dialog form, .book-done { padding: 30px 28px 28px; }
+  .book-dialog h2 { font-size: 38px; margin: 6px 0 4px; }
+  .book-sub { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+  .book-close {
+    position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer;
+  }
+  .field { display: grid; gap: 6px; margin-bottom: 14px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { font-size: 13px; font-weight: 600; }
+  .field input {
+    font: 500 16px var(--sans); color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%;
+  }
+  .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .book-dialog .btn { width: 100%; justify-content: center; padding: 15px 22px; font-size: 15px; margin-top: 6px; }
+  .book-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
+  .book-note a { font-weight: 600; }
+  .book-done { text-align: center; }
+  .book-done .btn { margin-top: 20px; }
   .badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
   h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.05; margin: 0; }
   h1 { font-size: clamp(44px, 8vw, 84px); margin: 22px 0 18px; letter-spacing: -.01em; }
@@ -268,7 +296,7 @@
       <a href="#pricing">Pricing</a>
     </nav>
   </div>
-  <a class="btn btn-light" href="#contact">Book today</a>
+  <a class="btn btn-light" href="#contact" data-book>Book today</a>
 </header>
 
 <main id="top">
@@ -286,11 +314,14 @@
       <figure><img src="images/lexus-right-progress.jpg" alt="Same headlight sanded clear and masked for clear coat" style="object-position:44% 58%"><span class="tag after">Sanded clear</span></figure>
     </div>
     <div class="hero-inner">
-      <span class="badge"><i></i>Sale: <s>$100</s> $75 per headlight</span>
+      <div class="badges">
+        <span class="badge"><i></i>Sale: <s>$100</s> $75 per headlight</span>
+        <span class="badge">Mobile service</span>
+      </div>
       <h1>Your headlights, <em>clear</em> again.</h1>
-      <p>I sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
+      <p>I come to your home or work, sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
       <div class="hero-ctas">
-        <a class="btn btn-accent" href="#contact">Book today</a>
+        <a class="btn btn-accent" href="#contact" data-book>Book today</a>
         <a class="btn btn-ghost" href="#work">See before &amp; after</a>
       </div>
       <div class="hero-dots" role="group" aria-label="Before and after photos"></div>
@@ -366,6 +397,7 @@
     <div class="wrap">
       <span class="eyebrow">How it works</span>
       <h2>Four steps, <em>one</em> visit</h2>
+      <p class="lede">Mobile service: I bring everything to your driveway or work parking lot, so your car stays where it is.</p>
       <ol class="steps">
         <li><b>Mask</b><p>I tape off the paint and trim around each light.</p></li>
         <li><b>Sand</b><p>I wet sand through the yellow layer down to clean plastic.</p></li>
@@ -387,11 +419,12 @@
           <div class="amount"><sup>$</sup>75</div>
           <div class="unit">per headlight</div>
           <p>Book today and both headlights cost $150, down from $200.</p>
-          <a class="btn btn-accent" href="#contact">Book today</a>
+          <a class="btn btn-accent" href="#contact" data-book>Book today</a>
         </div>
         <div class="price-side">
           <h3>Every job includes</h3>
           <ul class="checks">
+            <li>Mobile service at your home or work</li>
             <li>Tape and plastic masking to protect your paint</li>
             <li>Multi-stage wet sanding</li>
             <li>UV-resistant clear coat</li>
@@ -415,12 +448,52 @@
       <h2>Text me a photo of your <em>headlights</em></h2>
       <p class="lede">Send a picture of each light and I'll reply with a price and a time that works for you.</p>
       <div class="contact-ctas">
-        <a class="btn btn-accent" href="sms:+18054023870">Text (805) 402-3870</a>
+        <a class="btn btn-accent" href="#contact" data-book>Book today</a>
+        <a class="btn btn-outline" href="sms:+18054023870">Text (805) 402-3870</a>
         <a class="btn btn-outline" href="tel:+18054023870">Call</a>
       </div>
     </div>
   </section>
 </main>
+
+<dialog class="book-dialog" id="book" aria-labelledby="book-title">
+  <button class="book-close" type="button" aria-label="Close" data-close>&times;</button>
+  <form id="book-form">
+    <span class="eyebrow">Mobile service</span>
+    <h2 id="book-title">Book <em>today</em></h2>
+    <p class="book-sub">$75 per headlight on sale. I come to you.</p>
+    <div class="field">
+      <label for="b-name">Name</label>
+      <input id="b-name" name="name" autocomplete="name" required>
+    </div>
+    <div class="field">
+      <label for="b-phone">Phone</label>
+      <input id="b-phone" name="phone" type="tel" autocomplete="tel" required>
+    </div>
+    <div class="field">
+      <label for="b-address">Address</label>
+      <input id="b-address" name="address" autocomplete="street-address" placeholder="Where should I meet your car?" required>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="b-make">Car make</label>
+        <input id="b-make" name="make" placeholder="Toyota" required>
+      </div>
+      <div class="field">
+        <label for="b-model">Car model</label>
+        <input id="b-model" name="model" placeholder="Camry" required>
+      </div>
+    </div>
+    <button class="btn btn-accent" type="submit">Send booking</button>
+    <p class="book-note">Your text app opens with these details ready to send to (805) 402-3870.</p>
+  </form>
+  <div class="book-done" hidden>
+    <span class="eyebrow">Almost done</span>
+    <h2>Hit <em>send</em> in your texts</h2>
+    <p class="book-sub">I'll text you back to set a time. If your text app didn't open, call or text <a href="tel:+18054023870">(805) 402-3870</a>.</p>
+    <button class="btn btn-outline" type="button" data-close>Close</button>
+  </div>
+</dialog>
 
 <footer>
   <div class="wrap">
@@ -430,6 +503,41 @@
 </footer>
 
 <script>
+  // Booking pop-up: Book today buttons open the form; submitting opens a text to the business with the details
+  (function () {
+    var dialog = document.getElementById("book");
+    var form = document.getElementById("book-form");
+    var done = dialog.querySelector(".book-done");
+
+    document.querySelectorAll("[data-book]").forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        form.hidden = false;
+        done.hidden = true;
+        dialog.showModal();
+      });
+    });
+
+    dialog.querySelectorAll("[data-close]").forEach(function (b) {
+      b.addEventListener("click", function () { dialog.close(); });
+    });
+    dialog.addEventListener("click", function (e) { if (e.target === dialog) dialog.close(); });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = form.elements;
+      var body = "Headlight restoration booking\n" +
+        "Name: " + f.name.value + "\n" +
+        "Phone: " + f.phone.value + "\n" +
+        "Address: " + f.address.value + "\n" +
+        "Car: " + f.make.value + " " + f.model.value;
+      window.location.href = "sms:+18054023870?body=" + encodeURIComponent(body);
+      form.hidden = true;
+      done.hidden = false;
+      form.reset();
+    });
+  })();
+
   // Hero slideshow: fades through each before/after pair; dots jump to a pair
   (function () {
     var slides = document.querySelectorAll(".hero-split");
