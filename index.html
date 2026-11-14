@@ -145,7 +145,17 @@
   .field { display: grid; gap: 6px; margin-bottom: 14px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field label { font-size: 13px; font-weight: 600; }
-  .field label small { font-weight: 500; color: var(--muted); }
+  .reach { border: 0; padding: 0; margin: 0 0 14px; }
+  .reach legend { font-size: 13px; font-weight: 600; padding: 0; margin-bottom: 6px; }
+  .reach-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .reach-options label {
+    display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 6px;
+    font: 600 14px var(--sans);
+  }
+  .reach-options input { accent-color: #202121; margin: 0; flex: none; }
+  .reach-options label { white-space: nowrap; }
+  .reach-options label:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #202121; }
   .field input {
     font: 500 16px var(--sans); color: var(--ink); background: var(--bg);
     border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%;
@@ -495,10 +505,13 @@
       <label for="b-phone">Phone</label>
       <input id="b-phone" name="phone" type="tel" autocomplete="tel" required>
     </div>
-    <div class="field">
-      <label for="b-email">Email <small>(optional, for a confirmation)</small></label>
-      <input id="b-email" name="email" type="email" autocomplete="email">
-    </div>
+    <fieldset class="field reach">
+      <legend>How should I reach you?</legend>
+      <div class="reach-options">
+        <label><input type="radio" name="contact" value="Text" required checked> Text</label>
+        <label><input type="radio" name="contact" value="Phone call"> Phone call</label>
+      </div>
+    </fieldset>
     <div class="field">
       <label for="b-address">Address</label>
       <input id="b-address" name="address" autocomplete="street-address" placeholder="Where should I meet your car?" required>
@@ -674,7 +687,7 @@
       var data = {
         date: chosenDay, time: chosenTime,
         name: f.namedItem("name").value.trim(), phone: f.namedItem("phone").value.trim(),
-        email: f.namedItem("email").value.trim(),
+        contact: form.querySelector('[name="contact"]:checked').value,
         address: f.namedItem("address").value.trim(),
         make: f.namedItem("make").value.trim(), model: f.namedItem("model").value.trim()
       };
@@ -689,8 +702,7 @@
         .then(function (res) {
           if (res.ok) {
             finish("You're booked", "See you <em>soon</em>",
-              when + ". I'll text you at the number you gave to confirm." +
-              (res.emailed ? " A confirmation is on its way to your email." : ""));
+              when + ". I'll " + (data.contact === "Text" ? "text" : "call") + " you at the number you gave to confirm.");
           } else if (res.error === "taken" || res.error === "past") {
             showError("Someone just took that time. Pick another one.");
             loadTaken().then(renderDays);
