@@ -157,13 +157,17 @@ function notify(d) {
     });
     Utilities.sleep(2000); // give Gmail a moment to index it; flagPending catches it later otherwise
     flagPending();
-  } catch (err) {}
+  } catch (err) {
+    console.error("Booking alert email failed: " + err); // see Apps Script > Executions
+  }
 
   if (TEXT_ALERT_ADDRESS) {
     try {
       GmailApp.sendEmail(TEXT_ALERT_ADDRESS, "New booking",
         when + "\n" + d.name + " " + d.phone + "\n" + d.address + "\n" + d.make + " " + d.model);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Text alert failed: " + err);
+    }
   }
 }
 
@@ -178,6 +182,22 @@ function flagPending() {
     thread.markUnread();
     thread.getMessages().forEach(function (m) { m.star(); });
   });
+}
+
+// Run from the Apps Script editor to send yourself a sample alert. Unlike a real booking it shows
+// any error on screen, and it saves nothing to the sheet.
+function testAlert() {
+  var to = Session.getEffectiveUser().getEmail();
+  if (!to) throw new Error("Google didn't give this script your email address. Run setup first and allow access.");
+  console.log("Sending a test alert to " + to);
+  GmailApp.sendEmail(to, "IMPORTANT: New booking TEST (ignore)", "Test alert from your booking script.", {
+    htmlBody: '<div style="background:#d64545;color:#fff;font-weight:bold;padding:10px 14px">&#9888; TEST BOOKING ALERT</div>' +
+      "<p>If you can read this, booking alerts work.</p>",
+    name: "Clear Beam Bookings (no reply)"
+  });
+  Utilities.sleep(3000);
+  flagPending();
+  console.log("Sent. Check your inbox (and the Bookings label) for \"IMPORTANT: New booking TEST\".");
 }
 
 function esc(s) {
