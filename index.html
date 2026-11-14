@@ -146,6 +146,20 @@
   .book-dialog .btn { width: 100%; justify-content: center; padding: 15px 22px; font-size: 15px; margin-top: 6px; }
   .book-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
   .book-note a { font-weight: 600; }
+  .picker-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .picker-label small { font-weight: 500; color: var(--muted); margin-left: 6px; }
+  .days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
+  .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .day, .slot {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 14px; font: 600 14px var(--sans); cursor: pointer;
+  }
+  .day { flex: none; min-width: 66px; padding: 9px 8px; text-align: center; font-size: 12px; }
+  .day b { display: block; font-size: 16px; margin-top: 2px; }
+  .slot { padding: 12px 6px; }
+  .day[aria-pressed="true"], .slot[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #202121; }
+  .day:disabled, .slot:disabled { opacity: .4; text-decoration: line-through; cursor: not-allowed; }
+  .book-error { color: #d64545; font-size: 14px; font-weight: 600; margin: 0 0 8px; }
   .book-done { text-align: center; }
   .book-done .btn { margin-top: 20px; }
   .badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
@@ -316,7 +330,7 @@
     <div class="hero-inner">
       <div class="badges">
         <span class="badge"><i></i>Sale: <s>$100</s> $75 per headlight</span>
-        <span class="badge">Mobile service</span>
+        <span class="badge">Mobile service, weekends</span>
       </div>
       <h1>Your headlights, <em>clear</em> again.</h1>
       <p>I come to your home or work, sand off the yellow, oxidized layer, polish the lens, and seal it with a UV clear coat so the haze stays gone.</p>
@@ -397,7 +411,7 @@
     <div class="wrap">
       <span class="eyebrow">How it works</span>
       <h2>Four steps, <em>one</em> visit</h2>
-      <p class="lede">Mobile service: I bring everything to your driveway or work parking lot, so your car stays where it is.</p>
+      <p class="lede">Mobile service on Saturdays and Sundays, 8 AM to 4 PM. I bring everything to your driveway or work parking lot, so your car stays where it is.</p>
       <ol class="steps">
         <li><b>Mask</b><p>I tape off the paint and trim around each light.</p></li>
         <li><b>Sand</b><p>I wet sand through the yellow layer down to clean plastic.</p></li>
@@ -424,7 +438,7 @@
         <div class="price-side">
           <h3>Every job includes</h3>
           <ul class="checks">
-            <li>Mobile service at your home or work</li>
+            <li>Mobile service at your home or work, on weekends</li>
             <li>Tape and plastic masking to protect your paint</li>
             <li>Multi-stage wet sanding</li>
             <li>UV-resistant clear coat</li>
@@ -461,7 +475,11 @@
   <form id="book-form">
     <span class="eyebrow">Mobile service</span>
     <h2 id="book-title">Book <em>today</em></h2>
-    <p class="book-sub">$75 per headlight. I come to you.</p>
+    <p class="book-sub">$75 per headlight. I come to you on Saturdays and Sundays.</p>
+    <div class="picker-label" id="days-label">Pick a day</div>
+    <div class="days" role="group" aria-labelledby="days-label"></div>
+    <div class="picker-label" id="slots-label">Pick a time <small class="slots-status"></small></div>
+    <div class="slots" role="group" aria-labelledby="slots-label"></div>
     <div class="field">
       <label for="b-name">Name</label>
       <input id="b-name" name="name" autocomplete="name" required>
@@ -484,13 +502,13 @@
         <input id="b-model" name="model" placeholder="Camry" required>
       </div>
     </div>
-    <button class="btn btn-accent" type="submit">Send booking</button>
-    <p class="book-note">Your text app opens with these details ready to send.</p>
+    <p class="book-error" role="alert" hidden></p>
+    <button class="btn btn-accent" type="submit">Book this time</button>
   </form>
   <div class="book-done" hidden>
-    <span class="eyebrow">Almost done</span>
-    <h2>Hit <em>send</em> in your texts</h2>
-    <p class="book-sub">I'll text you back to set a time. If your text app didn't open, call or text <a href="tel:+18054023870">(805) 402-3870</a>.</p>
+    <span class="eyebrow done-eyebrow"></span>
+    <h2 class="done-title"></h2>
+    <p class="book-sub done-text"></p>
     <button class="btn btn-outline" type="button" data-close>Close</button>
   </div>
 </dialog>
@@ -503,18 +521,144 @@
 </footer>
 
 <script>
-  // Booking pop-up: Book today buttons open the form; submitting opens a text to the business with the details
+  // Booking pop-up: weekend day + 2-hour slot picker. With BOOKING_URL set (the Google Apps Script
+  // web app in booking-backend/Code.gs), taken and blocked slots are crossed out and bookings save
+  // to the Google Sheet. Without it, booking falls back to opening a text with the details.
   (function () {
+    var BOOKING_URL = "";
+    var PHONE = "+18054023870";
+    var SLOTS = [
+      { time: "08:00", label: "8 – 10 AM" },
+      { time: "10:00", label: "10 AM – 12 PM" },
+      { time: "12:00", label: "12 – 2 PM" },
+      { time: "14:00", label: "2 – 4 PM" }
+    ];
+    var WEEKENDS = 4;
+
     var dialog = document.getElementById("book");
     var form = document.getElementById("book-form");
     var done = dialog.querySelector(".book-done");
+    var daysEl = dialog.querySelector(".days");
+    var slotsEl = dialog.querySelector(".slots");
+    var statusEl = dialog.querySelector(".slots-status");
+    var errorEl = dialog.querySelector(".book-error");
+    var submitBtn = form.querySelector('[type="submit"]');
+
+    var taken = new Set();
+    var chosenDay = null, chosenTime = null;
+
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function isoDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+
+    // Every Saturday and Sunday from today through the next few weekends
+    function weekendDays() {
+      var days = [], d = new Date();
+      d.setHours(0, 0, 0, 0);
+      while (days.length < WEEKENDS * 2) {
+        if (d.getDay() === 0 || d.getDay() === 6) days.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+      }
+      return days;
+    }
+
+    function slotOpen(date, time) {
+      if (taken.has(date + " " + time)) return false;
+      var start = new Date(date + "T" + time + ":00");
+      return start > new Date();
+    }
+
+    function dayOpen(date) {
+      return SLOTS.some(function (s) { return slotOpen(date, s.time); });
+    }
+
+    function renderDays() {
+      daysEl.innerHTML = "";
+      var days = weekendDays();
+      if (!chosenDay || !dayOpen(chosenDay)) {
+        chosenDay = null;
+        for (var i = 0; i < days.length; i++) {
+          if (dayOpen(isoDate(days[i]))) { chosenDay = isoDate(days[i]); break; }
+        }
+      }
+      days.forEach(function (d) {
+        var date = isoDate(d);
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "day";
+        b.innerHTML = d.toLocaleDateString("en-US", { weekday: "short" }) +
+          "<b>" + d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + "</b>";
+        b.disabled = !dayOpen(date);
+        b.setAttribute("aria-pressed", String(date === chosenDay));
+        b.addEventListener("click", function () { chosenDay = date; chosenTime = null; renderDays(); });
+        daysEl.appendChild(b);
+      });
+      renderSlots();
+    }
+
+    function renderSlots() {
+      slotsEl.innerHTML = "";
+      if (chosenTime && !(chosenDay && slotOpen(chosenDay, chosenTime))) chosenTime = null;
+      SLOTS.forEach(function (s) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "slot";
+        b.textContent = s.label;
+        b.disabled = !chosenDay || !slotOpen(chosenDay, s.time);
+        b.setAttribute("aria-pressed", String(s.time === chosenTime));
+        b.addEventListener("click", function () { chosenTime = s.time; renderSlots(); });
+        slotsEl.appendChild(b);
+      });
+    }
+
+    function loadTaken() {
+      if (!BOOKING_URL) return Promise.resolve();
+      statusEl.textContent = "Checking open times…";
+      return fetch(BOOKING_URL)
+        .then(function (r) { return r.json(); })
+        .then(function (data) { taken = new Set(data.taken || []); statusEl.textContent = ""; })
+        .catch(function () { statusEl.textContent = ""; });
+    }
+
+    function showError(msg) { errorEl.textContent = msg; errorEl.hidden = !msg; }
+
+    function slotText() {
+      var d = new Date(chosenDay + "T12:00:00");
+      var slot = SLOTS.filter(function (s) { return s.time === chosenTime; })[0];
+      return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) + ", " + slot.label;
+    }
+
+    function finish(eyebrow, title, text) {
+      dialog.querySelector(".done-eyebrow").textContent = eyebrow;
+      dialog.querySelector(".done-title").innerHTML = title;
+      dialog.querySelector(".done-text").innerHTML = text;
+      form.hidden = true;
+      done.hidden = false;
+      form.reset();
+      chosenTime = null;
+    }
+
+    function bookByText(data, when) {
+      var body = "Headlight restoration booking\n" +
+        "When: " + when + "\n" +
+        "Name: " + data.name + "\n" +
+        "Phone: " + data.phone + "\n" +
+        "Address: " + data.address + "\n" +
+        "Car: " + data.make + " " + data.model;
+      window.location.href = "sms:" + PHONE + "?body=" + encodeURIComponent(body);
+      finish("Almost done", "Hit <em>send</em> in your texts",
+        "I'll text you back to confirm " + when + ". If your text app didn't open, call or text " +
+        '<a href="tel:' + PHONE + '">(805) 402-3870</a>.');
+    }
 
     document.querySelectorAll("[data-book]").forEach(function (link) {
       link.addEventListener("click", function (e) {
         e.preventDefault();
         form.hidden = false;
         done.hidden = true;
+        showError("");
+        renderDays();
         dialog.showModal();
+        loadTaken().then(renderDays);
       });
     });
 
@@ -525,16 +669,38 @@
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (!chosenDay || !chosenTime) { showError("Pick a day and a time."); return; }
+      showError("");
+
       var f = form.elements;
-      var body = "Headlight restoration booking\n" +
-        "Name: " + f.name.value + "\n" +
-        "Phone: " + f.phone.value + "\n" +
-        "Address: " + f.address.value + "\n" +
-        "Car: " + f.make.value + " " + f.model.value;
-      window.location.href = "sms:+18054023870?body=" + encodeURIComponent(body);
-      form.hidden = true;
-      done.hidden = false;
-      form.reset();
+      var data = {
+        date: chosenDay, time: chosenTime,
+        name: f.namedItem("name").value.trim(), phone: f.namedItem("phone").value.trim(),
+        address: f.namedItem("address").value.trim(),
+        make: f.namedItem("make").value.trim(), model: f.namedItem("model").value.trim()
+      };
+      var when = slotText();
+
+      if (!BOOKING_URL) { bookByText(data, when); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Booking…";
+      fetch(BOOKING_URL, { method: "POST", body: JSON.stringify(data) })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.ok) {
+            finish("You're booked", "See you <em>soon</em>",
+              when + ". I'll text you to confirm. Questions? Call or text " +
+              '<a href="tel:' + PHONE + '">(805) 402-3870</a>.');
+          } else if (res.error === "taken" || res.error === "past") {
+            showError("Someone just took that time. Pick another one.");
+            loadTaken().then(renderDays);
+          } else {
+            showError("Something went wrong. Check your details and try again.");
+          }
+        })
+        .catch(function () { bookByText(data, when); })
+        .then(function () { submitBtn.disabled = false; submitBtn.textContent = "Book this time"; });
     });
   })();
 
