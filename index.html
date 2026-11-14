@@ -145,6 +145,7 @@
   .field { display: grid; gap: 6px; margin-bottom: 14px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field label { font-size: 13px; font-weight: 600; }
+  .field label small { font-weight: 500; color: var(--muted); }
   .field input {
     font: 500 16px var(--sans); color: var(--ink); background: var(--bg);
     border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%;
@@ -467,12 +468,10 @@
   <section id="contact" class="contact reasons">
     <div class="wrap">
       <span class="eyebrow">Book today</span>
-      <h2>Text me a photo of your <em>headlights</em></h2>
-      <p class="lede">Send a picture of each light and I'll reply with a price and a time that works for you.</p>
+      <h2>Grab a <em>weekend</em> spot</h2>
+      <p class="lede">Pick a Saturday or Sunday time, tell me where your car is, and I'll come to you.</p>
       <div class="contact-ctas">
         <a class="btn btn-accent" href="#contact" data-book>Book today</a>
-        <a class="btn btn-outline" href="sms:+18054023870">Text (805) 402-3870</a>
-        <a class="btn btn-outline" href="tel:+18054023870">Call</a>
       </div>
     </div>
   </section>
@@ -495,6 +494,10 @@
     <div class="field">
       <label for="b-phone">Phone</label>
       <input id="b-phone" name="phone" type="tel" autocomplete="tel" required>
+    </div>
+    <div class="field">
+      <label for="b-email">Email <small>(optional, for a confirmation)</small></label>
+      <input id="b-email" name="email" type="email" autocomplete="email">
     </div>
     <div class="field">
       <label for="b-address">Address</label>
@@ -529,12 +532,12 @@
 </footer>
 
 <script>
-  // Booking pop-up: weekend day + 2-hour slot picker. With BOOKING_URL set (the Google Apps Script
-  // web app in booking-backend/Code.gs), taken and blocked slots are crossed out and bookings save
-  // to the Google Sheet. Without it, booking falls back to opening a text with the details.
+  // Booking pop-up: weekend day + 2-hour slot picker. Bookings send from the page to the Google Apps
+  // Script web app in booking-backend/Code.gs (BOOKING_URL), which saves them to the Google Sheet,
+  // emails the owner, and crosses out taken and blocked slots. The owner's contact details never
+  // appear on the page.
   (function () {
     var BOOKING_URL = "";
-    var PHONE = "+18054023870";
     var SLOTS = [
       { time: "08:00", label: "8 – 10 AM" },
       { time: "10:00", label: "10 AM – 12 PM" },
@@ -645,19 +648,6 @@
       chosenTime = null;
     }
 
-    function bookByText(data, when) {
-      var body = "Headlight restoration booking\n" +
-        "When: " + when + "\n" +
-        "Name: " + data.name + "\n" +
-        "Phone: " + data.phone + "\n" +
-        "Address: " + data.address + "\n" +
-        "Car: " + data.make + " " + data.model;
-      window.location.href = "sms:" + PHONE + "?body=" + encodeURIComponent(body);
-      finish("Almost done", "Hit <em>send</em> in your texts",
-        "I'll text you back to confirm " + when + ". If your text app didn't open, call or text " +
-        '<a href="tel:' + PHONE + '">(805) 402-3870</a>.');
-    }
-
     document.querySelectorAll("[data-book]").forEach(function (link) {
       link.addEventListener("click", function (e) {
         e.preventDefault();
@@ -684,12 +674,13 @@
       var data = {
         date: chosenDay, time: chosenTime,
         name: f.namedItem("name").value.trim(), phone: f.namedItem("phone").value.trim(),
+        email: f.namedItem("email").value.trim(),
         address: f.namedItem("address").value.trim(),
         make: f.namedItem("make").value.trim(), model: f.namedItem("model").value.trim()
       };
       var when = slotText();
 
-      if (!BOOKING_URL) { bookByText(data, when); return; }
+      if (!BOOKING_URL) { showError("Online booking isn't switched on yet. Please check back soon."); return; }
 
       submitBtn.disabled = true;
       submitBtn.textContent = "Booking…";
@@ -698,8 +689,8 @@
         .then(function (res) {
           if (res.ok) {
             finish("You're booked", "See you <em>soon</em>",
-              when + ". I'll text you to confirm. Questions? Call or text " +
-              '<a href="tel:' + PHONE + '">(805) 402-3870</a>.');
+              when + ". I'll text you at the number you gave to confirm." +
+              (res.emailed ? " A confirmation is on its way to your email." : ""));
           } else if (res.error === "taken" || res.error === "past") {
             showError("Someone just took that time. Pick another one.");
             loadTaken().then(renderDays);
@@ -707,7 +698,7 @@
             showError("Something went wrong. Check your details and try again.");
           }
         })
-        .catch(function () { bookByText(data, when); })
+        .catch(function () { showError("Your booking didn't go through. Check your connection and try again."); })
         .then(function () { submitBtn.disabled = false; submitBtn.textContent = "Book this time"; });
     });
   })();

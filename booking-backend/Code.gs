@@ -3,6 +3,12 @@
 // A script lock around each booking stops two people from taking the same slot.
 
 var TZ = "America/Los_Angeles";
+
+// Customer confirmation emails come from the Google account that owns this sheet. Google can only
+// hide that address on Workspace accounts, so on a regular Gmail account confirmations are skipped
+// to keep your address private. Set this to true if the sheet lives on a business Gmail you're
+// happy for customers to see (e.g. a separate clearbeam...@gmail.com).
+var SEND_FROM_THIS_ACCOUNT = false;
 var SLOTS = ["08:00", "10:00", "12:00", "14:00"]; // 2-hour jobs, 8 AM to 4 PM
 
 // Run once from the Apps Script editor: creates the two tabs and asks for permissions.
@@ -11,7 +17,7 @@ function setup() {
 
   var bookings = ss.getSheetByName("Bookings") || ss.insertSheet("Bookings");
   if (bookings.getLastRow() === 0) {
-    bookings.appendRow(["Submitted", "Date", "Time", "Name", "Phone", "Address", "Car make", "Car model"]);
+    bookings.appendRow(["Submitted", "Date", "Time", "Name", "Phone", "Address", "Car make", "Car model", "Email"]);
   }
   bookings.getRange("B:C").setNumberFormat("@");
   bookings.setFrozenRows(1);
@@ -46,10 +52,10 @@ function doPost(e) {
     }
 
     SpreadsheetApp.getActive().getSheetByName("Bookings")
-      .appendRow([new Date(), d.date, d.time, d.name, d.phone, d.address, d.make, d.model]);
+      .appendRow([new Date(), d.date, d.time, d.name, d.phone, d.address, d.make, d.model, d.email || ""]);
     SpreadsheetApp.flush();
-    notify(d);
-    return json({ ok: true });
+    var emailed = notify(d);
+    return json({ ok: true, emailed: emailed });
   } finally {
     lock.releaseLock();
   }
@@ -91,6 +97,9 @@ function validate(d) {
     var v = d[fields[i]];
     if (typeof v !== "string" || !v.trim() || v.length > 200) return "missing " + fields[i];
   }
+  if (d.email && (typeof d.email !== "string" || d.email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email))) {
+    return "bad email";
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) return "bad date";
   var day = new Date(d.date + "T12:00:00Z").getUTCDay();
   if (day !== 0 && day !== 6) return "weekends only";
@@ -119,17 +128,41 @@ function normTime(v) {
   return (h < 10 ? "0" : "") + h + ":" + (m[2] || "00");
 }
 
+// Emails the owner about the booking, and the customer too if they gave an email.
+// A failed email never undoes a booking that's already saved.
 function notify(d) {
+  var when = whenText(d);
   try {
     MailApp.sendEmail(
       Session.getEffectiveUser().getEmail(),
-      "New booking: " + d.date + " at " + d.time,
-      "Name: " + d.name + "\nPhone: " + d.phone + "\nAddress: " + d.address +
-      "\nCar: " + d.make + " " + d.model + "\nWhen: " + d.date + " at " + d.time
+      "New booking: " + when,
+      "When: " + when + "\nName: " + d.name + "\nPhone: " + d.phone + "\nEmail: " + (d.email || "none") +
+      "\nAddress: " + d.address + "\nCar: " + d.make + " " + d.model
     );
+  } catch (err) {}
+
+  if (!d.email) return false;
+  var message = {
+    to: d.email,
+    subject: "Your headlight restoration is booked: " + when,
+    body: "Hi " + d.name + ",\n\nYou're booked for " + when + " at " + d.address + ", for your " +
+      d.make + " " + d.model + ".\n\nI'll text you at " + d.phone + " to confirm.\n\nClear Beam Headlight Restoration",
+    name: "Clear Beam Headlight Restoration"
+  };
+  if (!SEND_FROM_THIS_ACCOUNT) message.noReply = true; // Workspace only; throws on regular Gmail
+  try {
+    MailApp.sendEmail(message);
+    return true;
   } catch (err) {
-    // The booking is already saved; a failed email shouldn't undo it
+    return false;
   }
+}
+
+// "Saturday, November 21, 10 AM – 12 PM"
+function whenText(d) {
+  var labels = { "08:00": "8 – 10 AM", "10:00": "10 AM – 12 PM", "12:00": "12 – 2 PM", "14:00": "2 – 4 PM" };
+  var day = Utilities.formatDate(new Date(d.date + "T12:00:00Z"), "UTC", "EEEE, MMMM d");
+  return day + ", " + labels[d.time];
 }
 
 function json(obj) {
